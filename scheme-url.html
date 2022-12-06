@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/vue@next"></script>
+  <!-- import CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <!-- import JavaScript -->
+  <script src="https://unpkg.com/element-plus"></script>
+  <title>生成scheme链接</title>
+</head>
+
+<body>
+  <div id="app">
+    <el-form :model="form" label-width="120px">
+      <el-form-item label="小程序appId">
+        <el-input v-model="form.appId" placeholder="请输入appId，如：2021003156685099" />
+      </el-form-item>
+      <el-form-item label="跳转链接">
+        <el-input v-model="form.url" placeholder="请输入跳转链接，如：pages/loading/index"/>
+      </el-form-item>
+      <el-form-item label="返回链接key">
+        <el-input v-model="form.returnUrlKey" placeholder="请输入返回链接key，如: returnUrl(非必填，默认returnUrl)" />
+      </el-form-item>
+      <el-form-item label="返回链接">
+        <el-input v-model="form.returnUrl" placeholder="输入返回链接，如：/pages/subscribe/departmentNavigate/index?isOutpatient=true，(非必填)" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="onSubmit">Create</el-button>
+        <el-button>Cancel</el-button>
+      </el-form-item>
+    </el-form>
+    <el-card class="box-card">
+        <div v-for="(item, index) in list" class="item-container">
+          <el-button type="primary" @click="copyText('id'+index)">点击复制</el-button>
+          <el-button type="danger" @click="del(index)">删除</el-button>
+          <div class="item" :id="'id' + index">{{item}}</div>
+        </div>
+    </el-card>
+  </div>
+  <script>
+    // 'alipays://platformapi/startapp?appId=2021002128681032&page=' + encodeURIComponent('/pages/xxx/main?redirectUrl=' + encodeURIComponent('/pages/xxx/main?aa=xx&bb=xx'))
+    const App = {
+      data() {
+        return {
+          startString: 'alipays://platformapi/startapp?appId=',
+          form: {
+            appId: '',
+            url: '',
+            returnUrlKey: '',
+            returnUrl: ''
+          },
+          list: []
+        };
+      },
+      mounted() {
+       
+      },
+      methods: {
+        onSubmit() {
+          if (this.form.appId && this.form.url) {
+            let url = ''
+            if (this.form.returnUrl) {
+              let concatStr = this.form.url.indexOf('?') === -1 ? '?' : '&';
+              let returnUrlKey = this.form.returnUrlKey ? this.form.returnUrlKey : 'returnUrl'
+              concatStr += returnUrlKey
+              url = `alipays://platformapi/startapp?appId=${this.form.appId}&page=${encodeURIComponent(this.form.url + concatStr + '=' + encodeURIComponent(this.form.returnUrl))}`
+            } else {
+              url = `alipays://platformapi/startapp?appId=${this.form.appId}&page=${encodeURIComponent(this.form.url)}`
+            }
+            this.list.push(url)
+          }
+        },
+        copyText(id) { //传id名
+          const copyDOM = document.getElementById(id) // 获取将要复制的dom
+          console.info(copyDOM)
+          if (!copyDOM) {
+            this.$message.error('没有内容')
+            return;
+          }
+          // 创建text area
+          const textArea = document.createElement('textarea')
+          textArea.value = copyDOM.innerText
+          // 使text area不在viewport，同时设置不可见
+          textArea.style.position = 'absolute'
+          textArea.style.opacity = '0'
+          textArea.style.left = '-999999px'
+          textArea.style.top = '-999999px'
+          document.body.appendChild(textArea)
+          textArea.focus()
+          textArea.select() // 选中文本
+          const successful = document.execCommand('copy') // 执行 copy 操作
+          if (successful) {
+            this.$message.success('复制成功！')
+          } else {
+            this.$message.error('复制失败，请手动复制！')
+          }
+          textArea.remove()
+        },
+        del(index) {
+          this.list.splice(index, 1)
+        }
+      }
+    };
+    const app = Vue.createApp(App);
+    app.use(ElementPlus);
+    app.mount("#app");
+  </script>
+  <style>
+    .item-container{
+      display: flex;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .item-container .el-button--primary{
+      margin-right: 1rem;
+    }
+    .item-container .el-button--danger{
+      margin-right: 1rem;
+    }
+    .item-container .item{
+      word-break: break-all;
+    }
+  </style>
+</body>
+
+</html>
